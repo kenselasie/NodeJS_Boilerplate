@@ -1,0 +1,44 @@
+name: Publish latest image
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: ['14', '16']
+    name: Use Node.js ${{ matrix.node-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm run build --if-present
+        env:
+          CI: true
+    
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Publish image to Github Packages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Publish image to Github Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: kenselasie/https://github.com/kenselasie/NodeJS_Boilerplate.git/https://github.com/kenselasie/NodeJS_Boilerplate.git
+          tag_with_sha: true
+          tag_with_ref: true
